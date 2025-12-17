@@ -1,15 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { ChatPanel } from "@/components/workspace/chat-panel"
+import { OrchestratorPanel } from "@/components/workspace/orchestrator-panel"
+import { CodeViewer } from "@/components/workspace/code-viewer"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Play, Moon, Sun, Monitor, Smartphone, Tablet } from "lucide-react"
+import { Loader2, Play, Monitor, Smartphone, Tablet } from "lucide-react"
 
 export default function NewProjectPage() {
     return (
         <div className="flex h-screen overflow-hidden bg-background">
-            {/* Left Panel: Chat & Orchestrator */}
+            {/* Left Panel: Orchestrator */}
             <div className="w-1/3 min-w-[350px] border-r flex flex-col bg-muted/5">
                 <div className="h-14 border-b flex items-center px-4 justify-between bg-background">
                     <span className="font-semibold flex items-center gap-2">
@@ -18,25 +18,19 @@ export default function NewProjectPage() {
                     </span>
                     <div className="flex gap-1">
                         <div className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-2 py-1 rounded">
-                            Planning Mode
+                            Orchestrating
                         </div>
                     </div>
                 </div>
                 <div className="flex-1 overflow-hidden">
-                    <ChatPanel />
+                    <OrchestratorPanel />
                 </div>
             </div>
 
             {/* Right Panel: Preview & Code */}
             <div className="flex-1 flex flex-col min-w-0 bg-secondary/5">
                 <div className="h-14 border-b flex items-center px-4 justify-between bg-background">
-                    <Tabs defaultValue="preview" className="h-full">
-                        <TabsList className="h-9">
-                            <TabsTrigger value="preview">Live Preview</TabsTrigger>
-                            <TabsTrigger value="code">Code</TabsTrigger>
-                            <TabsTrigger value="console">Console</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                    <span className="font-semibold">Workspace</span>
 
                     <div className="flex items-center gap-2">
                         <div className="flex items-center border rounded-md bg-muted/20 mr-2">
@@ -58,14 +52,8 @@ export default function NewProjectPage() {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-hidden relative">
-                    {/* Placeholder for Preview */}
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground flex-col gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center">
-                            <Monitor className="w-8 h-8 opacity-20" />
-                        </div>
-                        <p>Describe your app in the chat to start building...</p>
-                    </div>
+                <div className="flex-1 overflow-hidden">
+                    <CodeViewer />
                 </div>
             </div>
         </div>

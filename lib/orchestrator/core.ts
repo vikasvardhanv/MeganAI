@@ -171,28 +171,75 @@ Return a JSON array of tasks with: type, description, dependencies.`
             progress: 0
         }
 
-        // Route to appropriate model
-        const modelTask = this.mapTaskTypeToModelTask(task.type)
-        const prompt = this.buildPromptForTask(task)
+        // Import agents dynamically to avoid circular dependencies
+        const { ArchitectAgent } = await import("./agents/architect")
+        const { UIAgent } = await import("./agents/ui")
+        const { BackendAgent } = await import("./agents/backend")
 
-        let progress = 0
-        for await (const chunk of this.router.routeStream(modelTask, prompt)) {
-            progress += 10
+        try {
+            let generatedArtifacts: Artifact[] = []
+
+            switch (task.type) {
+                case "architecture":
+                    const architectAgent = new ArchitectAgent(this.router["apiKeys"])
+                    const architectResult = await architectAgent.analyze(
+                        task.description
+                    );
+                    // Type cast workaround for TS inference issue
+                    generatedArtifacts = (architectResult as any).artifacts as Artifact[]
+                    (task as any).plan = architectResult.plan
+                    break
+
+                case "ui-components":
+                    const uiAgent = new UIAgent(this.router["apiKeys"])
+                    const uiPlan = (this.tasks.find(t => t.type === "architecture") as any)?.plan
+                    if (uiPlan) {
+                        generatedArtifacts = await uiAgent.generateComponents(uiPlan)
+                    }
+                    break
+
+                case "backend-api":
+                    const backendAgent = new BackendAgent(this.router["apiKeys"])
+                    const backendPlan = (this.tasks.find(t => t.type === "architecture") as any)?.plan
+                    if (backendPlan) {
+                        const schema = await backendAgent.generateSchema(backendPlan)
+                        const apis = await backendAgent.generateAPIs(backendPlan)
+                        generatedArtifacts = [schema, ...apis]
+                    }
+                    break
+
+                default:
+                    // Fallback to generic generation
+                    for await (const chunk of this.router.routeStream(
+                        this.mapTaskTypeToModelTask(task.type),
+                        this.buildPromptForTask(task)
+                    )) {
+                        yield {
+                            type: "generating",
+                            agent: agentName,
+                            message: chunk.chunk,
+                            progress: 50
+                        }
+                    }
+            }
+
+            // Store generated artifacts
+            this.artifacts.push(...generatedArtifacts)
+            task.output = generatedArtifacts[0] // Store first artifact in task
+
             yield {
                 type: "generating",
                 agent: agentName,
-                message: chunk.chunk,
-                progress: Math.min(progress, 100)
+                message: `✓ Generated ${generatedArtifacts.length} file(s)`,
+                progress: 100
             }
-        }
-
-        // For now, mark as complete
-        // TODO: Actually generate artifacts
-        task.output = {
-            type: "code",
-            path: `src/${task.type}.ts`,
-            content: "// Generated code placeholder",
-            language: "typescript"
+        } catch (error) {
+            yield {
+                type: "error",
+                agent: agentName,
+                message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+            throw error
         }
     }
 
