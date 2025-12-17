@@ -20,10 +20,18 @@ export function ChatPanel() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!input.trim()) return
-        const value = input
-        setInput("")
-        await append({ role: "user", content: value })
+        if (!input.trim() || isLoading) return
+
+        const userMessage = { role: "user", content: input }
+        setInput("") // Optimistic clear
+
+        try {
+            await append(userMessage as any)
+        } catch (error) {
+            console.error("Chat error:", error)
+            // Restore input if failed (optional, but good UX)
+            // setInput(userMessage.content) 
+        }
     }
 
     return (

@@ -143,7 +143,7 @@ export function PricingCards() {
                 <div className="mt-12 text-center">
                     <p className="text-sm text-muted-foreground">
                         All plans include SSL, 99.9% uptime, and daily backups.{" "}
-                        <Link href="/pricing" className="text-primary hover:underline">
+                        <Link href="/#pricing" className="text-primary hover:underline">
                             Compare plans →
                         </Link>
                     </p>
