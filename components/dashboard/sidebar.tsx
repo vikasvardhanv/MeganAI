@@ -65,7 +65,7 @@ export function Sidebar() {
                             <p className="text-lg font-bold">100</p>
                         </div>
                     </div>
-                    <Link href="/pricing">
+                    <Link href="/#pricing">
                         <button className="w-full bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 transition">
                             Upgrade
                         </button>
