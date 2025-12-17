@@ -39,17 +39,33 @@ export function RegisterForm({ className, ...props }: UserAuthFormProps) {
     async function onSubmit(data: z.infer<typeof formSchema>) {
         setIsLoading(true)
 
-        // In a real app, you would call your API to register the user here.
-        // For this demo, we'll just simulate a delay or try to sign in.
-        // Since we don't have a register API route yet, let's just log it.
-
         try {
-            // TODO: Implement actual registration API call
-            console.log("Registering user:", data)
+            // First, register the user via API
+            const registerResponse = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: data.name,
+                    email: data.email.toLowerCase(),
+                    password: data.password,
+                }),
+            })
+
+            const registerData = await registerResponse.json()
+
+            if (!registerResponse.ok) {
+                console.error("Registration failed:", registerData.error)
+                // TODO: Show error toast to user
+                setIsLoading(false)
+                return
+            }
+
+            // If registration successful, sign in automatically
             const result = await signIn("credentials", {
                 email: data.email.toLowerCase(),
                 password: data.password,
-                redirect: false,
+                redirect: true,
+                callbackUrl: "/dashboard",
             })
 
             if (!result?.ok) {
