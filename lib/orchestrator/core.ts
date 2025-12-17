@@ -45,6 +45,11 @@ export class AppOrchestrator {
     private router: ModelRouter
     private tasks: Task[] = []
     private artifacts: Artifact[] = []
+    private userPrompt: string = ""
+    private analysis: string = ""
+    private appName: string = ""
+    private features: string[] = []
+    private components: string[] = []
 
     constructor(apiKeys: Record<string, string>) {
         this.router = new ModelRouter(apiKeys)
@@ -54,72 +59,184 @@ export class AppOrchestrator {
      * Parse user prompt and create execution plan
      */
     async createExecutionPlan(prompt: string): Promise<Task[]> {
-        // Use Architect Agent (Claude Opus) to analyze prompt
-        const planningPrompt = `You are an expert software architect. Analyze this user request and break it down into specific development tasks.
+        this.userPrompt = prompt // Store for later use by agents
 
-User Request: ${prompt}
+        // Use Architect Agent to ACTUALLY analyze the prompt
+        const planningPrompt = `You are an expert software architect. Analyze this user request and create a detailed development plan.
 
-Generate a structured plan with:
-1. App architecture (routes, components, data flow)
-2. UI components needed
-3. Backend APIs/routes
-4. Database schema
-5. Styling approach
-6. Integration steps
+USER REQUEST: "${prompt}"
 
-Return a JSON array of tasks with: type, description, dependencies.`
+Your job:
+1. Understand what the user wants to build
+2. Break it down into specific, actionable tasks
+3. Identify the components, pages, and features needed
 
-        const result = await this.router.route("architecture-planning", planningPrompt)
+Respond with a JSON object in this EXACT format:
+{
+    "analysis": "Brief summary of what user wants (1-2 sentences)",
+    "appName": "Suggested app name",
+    "features": ["list of main features"],
+    "pages": ["list of pages/routes needed"],
+    "components": ["list of React components"],
+    "dataModels": ["list of data entities if any"],
+    "tasks": [
+        {"id": "1", "type": "architecture", "description": "Specific task description"},
+        {"id": "2", "type": "ui-components", "description": "Specific task description", "deps": ["1"]},
+        {"id": "3", "type": "backend-api", "description": "Specific task description", "deps": ["1"]}
+    ]
+}
 
-        // Parse the result into tasks
-        const plan = this.parseExecutionPlan(result.response)
-        this.tasks = plan
-        return plan
+IMPORTANT: Make the task descriptions specific to what the user asked for, not generic.`
+
+        try {
+            const result = await this.router.route("architecture-planning", planningPrompt)
+            const plan = this.parseExecutionPlan(result.response, prompt)
+            this.tasks = plan
+            return plan
+        } catch (error) {
+            console.error("[Orchestrator] Planning failed:", error)
+            // Fallback to a smart default based on the prompt
+            return this.createFallbackPlan(prompt)
+        }
     }
 
-    private parseExecutionPlan(response: string): Task[] {
-        // TODO: Parse AI response into structured tasks
-        // For now, return a basic plan
-        return [
-            {
-                id: "arch-1",
-                type: "architecture",
-                description: "Design app structure",
-                dependencies: [],
-                status: "pending"
-            },
-            {
+    private parseExecutionPlan(response: string, userPrompt: string): Task[] {
+        try {
+            // Extract JSON from the response (might be wrapped in markdown)
+            let jsonStr = response
+            const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/)
+            if (jsonMatch) {
+                jsonStr = jsonMatch[1]
+            }
+
+            // Try to find JSON object in the response
+            const jsonStart = jsonStr.indexOf('{')
+            const jsonEnd = jsonStr.lastIndexOf('}')
+            if (jsonStart !== -1 && jsonEnd !== -1) {
+                jsonStr = jsonStr.slice(jsonStart, jsonEnd + 1)
+            }
+
+            const parsed = JSON.parse(jsonStr)
+
+            // Store the analysis for context
+            this.analysis = parsed.analysis || `Building: ${userPrompt}`
+            this.appName = parsed.appName || "MeganApp"
+            this.features = parsed.features || []
+            this.components = parsed.components || []
+
+            // Convert to our Task format
+            if (parsed.tasks && Array.isArray(parsed.tasks)) {
+                return parsed.tasks.map((t: any, index: number) => ({
+                    id: t.id || `task-${index + 1}`,
+                    type: this.mapTaskType(t.type),
+                    description: t.description || `Task ${index + 1} for ${userPrompt}`,
+                    dependencies: t.deps || [],
+                    status: "pending" as const
+                }))
+            }
+        } catch (error) {
+            console.error("[Orchestrator] Failed to parse AI response:", error)
+        }
+
+        // If parsing fails, create a smart fallback
+        return this.createFallbackPlan(userPrompt)
+    }
+
+    private mapTaskType(type: string): TaskType {
+        const typeMap: Record<string, TaskType> = {
+            "architecture": "architecture",
+            "ui": "ui-components",
+            "ui-components": "ui-components",
+            "frontend": "ui-components",
+            "backend": "backend-api",
+            "backend-api": "backend-api",
+            "api": "backend-api",
+            "database": "database-schema",
+            "db": "database-schema",
+            "style": "styling",
+            "styling": "styling",
+            "css": "styling",
+            "integration": "integration",
+            "test": "testing",
+            "testing": "testing"
+        }
+        return typeMap[type.toLowerCase()] || "integration"
+    }
+
+    private createFallbackPlan(prompt: string): Task[] {
+        // Create a contextual plan based on the prompt
+        const lowerPrompt = prompt.toLowerCase()
+        const tasks: Task[] = []
+
+        // Always start with architecture
+        tasks.push({
+            id: "plan-1",
+            type: "architecture",
+            description: `Analyze and plan: "${prompt.slice(0, 100)}${prompt.length > 100 ? '...' : ''}"`,
+            dependencies: [],
+            status: "pending"
+        })
+
+        // Add UI task if prompt mentions visual elements
+        if (lowerPrompt.includes('app') || lowerPrompt.includes('page') || lowerPrompt.includes('ui') ||
+            lowerPrompt.includes('button') || lowerPrompt.includes('form') || lowerPrompt.includes('dashboard')) {
+            tasks.push({
                 id: "ui-1",
                 type: "ui-components",
-                description: "Generate UI components",
-                dependencies: ["arch-1"],
+                description: `Generate UI components for: ${prompt.slice(0, 50)}`,
+                dependencies: ["plan-1"],
                 status: "pending"
-            },
-            {
+            })
+        }
+
+        // Add backend if prompt mentions data, api, auth, etc
+        if (lowerPrompt.includes('api') || lowerPrompt.includes('data') || lowerPrompt.includes('user') ||
+            lowerPrompt.includes('auth') || lowerPrompt.includes('login') || lowerPrompt.includes('save')) {
+            tasks.push({
                 id: "backend-1",
                 type: "backend-api",
-                description: "Create API routes",
-                dependencies: ["arch-1"],
+                description: `Create backend services for: ${prompt.slice(0, 50)}`,
+                dependencies: ["plan-1"],
                 status: "pending"
-            },
-            {
-                id: "integration-1",
+            })
+        }
+
+        // Add integration if we have both UI and backend
+        if (tasks.length > 2) {
+            tasks.push({
+                id: "integrate-1",
                 type: "integration",
-                description: "Wire everything together",
-                dependencies: ["ui-1", "backend-1"],
+                description: `Connect all parts together`,
+                dependencies: tasks.slice(1).map(t => t.id),
                 status: "pending"
-            }
-        ]
+            })
+        }
+
+        return tasks
     }
 
     /**
      * Execute the plan and stream progress
      */
     async *execute(): AsyncGenerator<ProgressEvent> {
+        // Show intelligent analysis first
+        const analysisMessage = this.analysis
+            ? `📋 **Understanding your request:**\n${this.analysis}\n\n🏗️ App: ${this.appName}\n📦 Features: ${this.features.slice(0, 3).join(", ")}${this.features.length > 3 ? "..." : ""}`
+            : `🔍 Analyzing: "${this.userPrompt.slice(0, 100)}${this.userPrompt.length > 100 ? "..." : ""}"`
+
         yield {
             type: "thinking",
             agent: "Architect",
-            message: "Analyzing your request and creating execution plan..."
+            message: analysisMessage
+        }
+
+        // Show the plan
+        if (this.tasks.length > 0) {
+            yield {
+                type: "thinking",
+                agent: "Architect",
+                message: `📝 **Execution Plan:**\n${this.tasks.map((t, i) => `${i + 1}. ${t.description}`).join("\n")}`
+            }
         }
 
         // Execute tasks based on dependencies
