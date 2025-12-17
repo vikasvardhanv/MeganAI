@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware"
 
+// Migrated from middleware.ts to proxy.ts
 export default withAuth({
     pages: {
         signIn: "/login",
