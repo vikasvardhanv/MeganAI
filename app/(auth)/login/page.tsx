@@ -11,22 +11,24 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
     return (
-        <div className="container relative flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0 min-h-screen">
+        <div className="w-full min-h-screen grid lg:grid-cols-2">
             {/* Left: Visual Side */}
-            <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-secondary/80 to-primary/90" />
-                <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+            <div className="hidden h-full flex-col justify-between bg-zinc-900 p-10 text-white lg:flex relative overflow-hidden">
+                {/* Backgrounds */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-primary opacity-90" />
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
 
-                {/* Content */}
+                {/* Header */}
                 <div className="relative z-20 flex items-center text-lg font-medium">
                     <Sparkles className="mr-2 h-6 w-6" />
                     MeganAi
                 </div>
 
+                {/* Content */}
                 <div className="relative z-20 mt-auto">
                     <div className="space-y-8">
                         <div>
-                            <h2 className="text-4xl font-bold mb-4">
+                            <h2 className="text-4xl font-bold tracking-tight mb-4">
                                 Welcome Back to
                                 <span className="block mt-2">MeganAi</span>
                             </h2>
@@ -35,58 +37,42 @@ export default function LoginPage() {
                             </p>
                         </div>
 
-                        {/* Features */}
-                        <div className="space-y-4 pt-8">
+                        {/* Features List */}
+                        <div className="space-y-6 pt-8">
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                                <div className="p-2 rounded-lg bg-white/10 backdrop-blur-sm">
                                     <Sparkles className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold mb-1">Multi-Model AI</h3>
-                                    <p className="text-sm opacity-75">
-                                        Routes to the best AI for each task
-                                    </p>
+                                    <h3 className="font-semibold">Multi-Model AI</h3>
+                                    <p className="text-sm opacity-80">Routes tasks to the best AI model</p>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                                <div className="p-2 rounded-lg bg-white/10 backdrop-blur-sm">
                                     <Zap className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold mb-1">Lightning Fast</h3>
-                                    <p className="text-sm opacity-75">
-                                        Generate apps in just minutes
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                                    <Shield className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold mb-1">Secure by Default</h3>
-                                    <p className="text-sm opacity-75">
-                                        Production-ready security built-in
-                                    </p>
+                                    <h3 className="font-semibold">Lightning Fast</h3>
+                                    <p className="text-sm opacity-80">Generate production apps in minutes</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Stats */}
-                        <div className="grid grid-cols-3 gap-6 pt-8 border-t border-white/20">
+                        <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/20">
                             <div>
                                 <div className="text-2xl font-bold">10k+</div>
-                                <div className="text-xs opacity-75">Apps Built</div>
+                                <div className="text-xs opacity-75 uppercase tracking-wider">Apps Built</div>
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">99%</div>
-                                <div className="text-xs opacity-75">Success</div>
+                                <div className="text-xs opacity-75 uppercase tracking-wider">Success Rate</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">5min</div>
-                                <div className="text-xs opacity-75">Avg Time</div>
+                                <div className="text-2xl font-bold">5m</div>
+                                <div className="text-xs opacity-75 uppercase tracking-wider">Avg Build Time</div>
                             </div>
                         </div>
                     </div>
@@ -94,7 +80,7 @@ export default function LoginPage() {
             </div>
 
             {/* Right: Form Side */}
-            <div className="lg:p-8 relative h-full flex flex-col justify-center">
+            <div className="flex items-center justify-center p-8 lg:p-12 h-full bg-background">
                 <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-2xl font-semibold tracking-tight">
@@ -105,7 +91,7 @@ export default function LoginPage() {
                         </p>
                     </div>
 
-                    <Suspense fallback={<div className="text-center">Loading...</div>}>
+                    <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
                         <LoginForm />
                     </Suspense>
 
