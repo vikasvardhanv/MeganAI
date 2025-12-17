@@ -13,7 +13,7 @@ export interface ModelConfig {
 export const MODEL_REGISTRY: Record<string, ModelConfig> = {
     // ============ ANTHROPIC MODELS ============
     "claude-opus-4": {
-        id: "claude-opus-4-20250514", // Hypothetical future model
+        id: "claude-sonnet-4-20250514", // Using latest available Claude model
         provider: "anthropic",
         strengths: ["reasoning", "planning", "complex-analysis", "long-context", "code-review"],
         weaknesses: ["speed", "cost"],
@@ -24,7 +24,7 @@ export const MODEL_REGISTRY: Record<string, ModelConfig> = {
         type: "text",
     },
     "claude-sonnet-4": {
-        id: "claude-sonnet-4-20250514",
+        id: "claude-sonnet-4-20250514", // Latest Claude Sonnet
         provider: "anthropic",
         strengths: ["code-generation", "balanced", "fast", "api-design", "database-schema"],
         weaknesses: ["creative-writing"],
