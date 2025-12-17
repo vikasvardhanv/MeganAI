@@ -23,7 +23,7 @@ export interface RouteResult {
 export class ModelRouter {
     private providers: Map<string, any> = new Map()
     private availability: Map<string, boolean> = new Map()
-    private apiKeys: Record<string, string>
+    public apiKeys: Record<string, string> // Changed from private to public
 
     constructor(apiKeys: Record<string, string>) {
         this.apiKeys = apiKeys

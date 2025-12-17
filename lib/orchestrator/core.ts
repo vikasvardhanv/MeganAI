@@ -181,7 +181,7 @@ Return a JSON array of tasks with: type, description, dependencies.`
 
             switch (task.type) {
                 case "architecture":
-                    const architectAgent = new ArchitectAgent(this.router["apiKeys"])
+                    const architectAgent = new ArchitectAgent(this.router.apiKeys);
                     const architectResult = await architectAgent.analyze(
                         task.description
                     );
@@ -191,7 +191,7 @@ Return a JSON array of tasks with: type, description, dependencies.`
                     break
 
                 case "ui-components":
-                    const uiAgent = new UIAgent(this.router["apiKeys"])
+                    const uiAgent = new UIAgent(this.router.apiKeys)
                     const uiPlan = (this.tasks.find(t => t.type === "architecture") as any)?.plan
                     if (uiPlan) {
                         generatedArtifacts = await uiAgent.generateComponents(uiPlan)
@@ -199,7 +199,7 @@ Return a JSON array of tasks with: type, description, dependencies.`
                     break
 
                 case "backend-api":
-                    const backendAgent = new BackendAgent(this.router["apiKeys"])
+                    const backendAgent = new BackendAgent(this.router.apiKeys)
                     const backendPlan = (this.tasks.find(t => t.type === "architecture") as any)?.plan
                     if (backendPlan) {
                         const schema = await backendAgent.generateSchema(backendPlan)
