@@ -1,0 +1,58 @@
+:root {
+  /* Primary - Burnt Orange */
+  --primary: 24 95% 53%;
+  --primary-foreground: 0 0% 100%;
+  
+  /* Secondary - Deep Teal */
+  --secondary: 180 50% 30%;
+  --secondary-foreground: 0 0% 100%;
+  
+  /* Accent - Gold */
+  --accent: 45 93% 58%;
+  --accent-foreground: 0 0% 0%;
+  
+  /* Background - Warm Cream */
+  --background: 40 33% 98%;
+  --foreground: 20 14% 10%;
+  
+  /* Cards - Warm White */
+  --card: 40 33% 100%;
+  --card-foreground: 20 14% 10%;
+  
+  /* Muted - Warm Gray */
+  --muted: 40 10% 92%;
+  --muted-foreground: 20 10% 40%;
+  
+  /* Border */
+  --border: 40 10% 85%;
+  --input: 40 10% 85%;
+  --ring: 24 95% 53%;
+  
+  /* Radius */
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Dark mode - Charcoal base */
+  --background: 20 14% 8%;
+  --foreground: 40 33% 98%;
+  
+  --card: 20 14% 12%;
+  --card-foreground: 40 33% 98%;
+  
+  --primary: 24 95% 58%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 180 50% 40%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --accent: 45 93% 58%;
+  --accent-foreground: 0 0% 0%;
+  
+  --muted: 20 10% 16%;
+  --muted-foreground: 40 10% 60%;
+  
+  --border: 20 10% 16%;
+  --input: 20 10% 16%;
+  --ring: 24 95% 58%;
+}
