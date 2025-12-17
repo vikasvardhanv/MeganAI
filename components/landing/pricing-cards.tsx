@@ -63,7 +63,7 @@ const plans = [
 
 export function PricingCards() {
     return (
-        <section className="py-24 bg-background">
+        <section id="pricing" className="py-24 bg-background">
             <div className="container px-4 mx-auto sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="max-w-2xl mx-auto text-center mb-16">
@@ -81,8 +81,8 @@ export function PricingCards() {
                         <div
                             key={plan.name}
                             className={`relative rounded-2xl p-8 border ${plan.highlighted
-                                    ? 'border-primary shadow-dramatic bg-card'
-                                    : 'border-border shadow-medium bg-card hover:shadow-strong'
+                                ? 'border-primary shadow-dramatic bg-card'
+                                : 'border-border shadow-medium bg-card hover:shadow-strong'
                                 } transition-all duration-300 animate-fade-in`}
                             style={{ animationDelay: `${index * 100}ms` }}
                         >

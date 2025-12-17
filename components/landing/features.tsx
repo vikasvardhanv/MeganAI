@@ -43,7 +43,7 @@ const features = [
 
 export function Features() {
     return (
-        <section className="py-24 bg-muted/30">
+        <section id="features" className="py-24 bg-muted/30">
             <div className="container px-4 mx-auto sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="max-w-2xl mx-auto text-center mb-16">

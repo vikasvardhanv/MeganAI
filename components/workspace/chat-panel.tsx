@@ -38,14 +38,25 @@ export function ChatPanel() {
                         <div
                             key={m.id}
                             className={cn(
-                                "flex w-full items-start gap-2 rounded-lg p-3 text-sm",
-                                m.role === "user"
-                                    ? "bg-primary text-primary-foreground ml-auto max-w-[80%]"
-                                    : "bg-muted text-foreground max-w-[90%]"
+                                "flex w-full items-start gap-3 animate-fade-in",
+                                m.role === "user" ? "flex-row-reverse" : "flex-row"
                             )}
                         >
-                            {m.role === "user" ? <User className="h-4 w-4 mt-1" /> : <Bot className="h-4 w-4 mt-1" />}
-                            <div className="whitespace-pre-wrap">{m.content}</div>
+                            <div className={cn(
+                                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-sm",
+                                m.role === "user" ? "bg-primary text-primary-foreground" : "bg-white dark:bg-slate-800 border"
+                            )}>
+                                {m.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4 text-primary" />}
+                            </div>
+
+                            <div className={cn(
+                                "relative px-4 py-3 text-sm shadow-sm max-w-[80%]",
+                                m.role === "user"
+                                    ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
+                                    : "bg-white dark:bg-slate-800 border rounded-2xl rounded-tl-sm"
+                            )}>
+                                <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                            </div>
                         </div>
                     ))}
                     {isLoading && (

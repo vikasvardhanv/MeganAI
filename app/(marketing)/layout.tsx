@@ -17,14 +17,14 @@ export default function MarketingLayout({ children }: MarketingLayoutProps) {
                         </Link>
                         <nav className="flex gap-6">
                             <Link
-                                href="/features"
-                                className="flex items-center text-sm font-medium text-muted-foreground"
+                                href="/#features"
+                                className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                             >
                                 Features
                             </Link>
                             <Link
-                                href="/pricing"
-                                className="flex items-center text-sm font-medium text-muted-foreground"
+                                href="/#pricing"
+                                className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                             >
                                 Pricing
                             </Link>
