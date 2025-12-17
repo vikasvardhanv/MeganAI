@@ -6,8 +6,8 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ForgeAI - Build Apps with AI",
-  description: "Generate production-grade full-stack applications with AI.",
+  title: "MeganAi - Build Apps with AI",
+  description: "Generate production-grade web applications using AI",
 };
 
 export default function RootLayout({

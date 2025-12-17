@@ -6,7 +6,7 @@ export function Logo({ className }: { className?: string }) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Command className="h-5 w-5" />
             </div>
-            <span className="text-xl">ForgeAI</span>
+            <span className="text-xl">MeganAi</span>
         </div>
     )
 }

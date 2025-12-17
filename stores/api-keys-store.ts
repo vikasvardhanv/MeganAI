@@ -63,7 +63,7 @@ export const useApiKeysStore = create<APIKeysState>()(
             getAllKeys: () => get().keys,
         }),
         {
-            name: "forgeai-api-keys",
+            name: "meganai-api-keys",
             // Only persist keys, not validation status
             partialize: (state) => ({ keys: state.keys }),
         }

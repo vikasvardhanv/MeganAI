@@ -28,10 +28,10 @@ export default function IndexPage() {
                         Proudly Open Source
                     </h2>
                     <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-                        ForgeAI is open source and powered by open source software. <br />{" "}
+                        MeganAi is open source and powered by open source software. <br />{" "}
                         The code is available on{" "}
                         <a
-                            href="https://github.com/vikashvardhan/forgeai"
+                            href="https://github.com/vikasvardhanv/MeganAI"
                             target="_blank"
                             rel="noreferrer"
                             className="underline underline-offset-4"
