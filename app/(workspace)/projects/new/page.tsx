@@ -4,9 +4,24 @@ import { useState } from "react"
 import { OrchestratorPanel } from "@/components/workspace/orchestrator-panel"
 import { CodeViewer } from "@/components/workspace/code-viewer"
 import { Button } from "@/components/ui/button"
-import { Loader2, Play, Monitor, Smartphone, Tablet } from "lucide-react"
+import { Loader2, Play, Monitor, Smartphone, Tablet, Download } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+type PreviewMode = "desktop" | "tablet" | "mobile"
 
 export default function NewProjectPage() {
+    const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop")
+
+    const handleDownload = () => {
+        // TODO: Trigger ZIP download
+        alert("ZIP download will be implemented")
+    }
+
+    const handleDeploy = () => {
+        // TODO: Integrate with Vercel/deployment
+        alert("Deploy feature coming soon!")
+    }
+
     return (
         <div className="flex h-screen overflow-hidden bg-background">
             {/* Left Panel: Orchestrator */}
@@ -34,18 +49,56 @@ export default function NewProjectPage() {
 
                     <div className="flex items-center gap-2">
                         <div className="flex items-center border rounded-md bg-muted/20 mr-2">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none border-r">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "h-8 w-8 rounded-none border-r",
+                                    previewMode === "desktop" && "bg-primary/10 text-primary"
+                                )}
+                                onClick={() => setPreviewMode("desktop")}
+                            >
                                 <Monitor className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none border-r">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "h-8 w-8 rounded-none border-r",
+                                    previewMode === "tablet" && "bg-primary/10 text-primary"
+                                )}
+                                onClick={() => setPreviewMode("tablet")}
+                            >
                                 <Tablet className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "h-8 w-8 rounded-none",
+                                    previewMode === "mobile" && "bg-primary/10 text-primary"
+                                )}
+                                onClick={() => setPreviewMode("mobile")}
+                            >
                                 <Smartphone className="h-4 w-4" />
                             </Button>
                         </div>
 
-                        <Button size="sm" className="gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={handleDownload}
+                        >
+                            <Download className="h-3 w-3" />
+                            ZIP
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            className="gap-2"
+                            onClick={handleDeploy}
+                        >
                             <Play className="h-3 w-3" />
                             Deploy
                         </Button>
@@ -53,7 +106,7 @@ export default function NewProjectPage() {
                 </div>
 
                 <div className="flex-1 overflow-hidden">
-                    <CodeViewer />
+                    <CodeViewer previewMode={previewMode} />
                 </div>
             </div>
         </div>

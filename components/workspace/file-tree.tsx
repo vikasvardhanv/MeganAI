@@ -92,9 +92,41 @@ export function FileTree({ files, onFileSelect }: FileTreeProps) {
         )
     }
 
-    const handleDownloadAll = () => {
-        // TODO: Implement ZIP download
-        console.log("Download all files as ZIP")
+    const handleDownloadAll = async () => {
+        if (files.length === 0) {
+            alert("No files to download")
+            return
+        }
+
+        try {
+            // Import ZIP utilities
+            const { generateProjectZip, downloadBlob } = await import("@/lib/utils/zip")
+
+            // Convert FileNode tree to Artifact array
+            const artifacts: any[] = []
+            const extractArtifacts = (nodes: FileNode[]) => {
+                nodes.forEach(node => {
+                    if (node.type === "file" && node.content) {
+                        artifacts.push({
+                            type: "code",
+                            path: node.path,
+                            content: node.content,
+                            language: node.path.split(".").pop()
+                        })
+                    } else if (node.children) {
+                        extractArtifacts(node.children)
+                    }
+                })
+            }
+            extractArtifacts(files)
+
+            // Generate and download ZIP
+            const blob = await generateProjectZip(artifacts, "meganai-app")
+            downloadBlob(blob, "meganai-app.zip")
+        } catch (error) {
+            console.error("Failed to generate ZIP:", error)
+            alert("Failed to generate ZIP. Please try again.")
+        }
     }
 
     return (

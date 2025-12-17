@@ -6,15 +6,29 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Monitor, Code2, Terminal, Play } from "lucide-react"
 import { FileTree, FileNode } from "./file-tree"
+import { cn } from "@/lib/utils"
 import type { Artifact } from "@/lib/orchestrator/core"
 
 interface CodeViewerProps {
     artifacts?: Artifact[]
+    previewMode?: "desktop" | "tablet" | "mobile"
 }
 
-export function CodeViewer({ artifacts = [] }: CodeViewerProps) {
+export function CodeViewer({ artifacts = [], previewMode = "desktop" }: CodeViewerProps) {
     const [selectedFile, setSelectedFile] = useState<FileNode | null>(null)
     const [fileTree, setFileTree] = useState<FileNode[]>([])
+
+    // Preview container sizing based on device mode
+    const getPreviewSize = () => {
+        switch (previewMode) {
+            case "mobile":
+                return "max-w-[375px]"
+            case "tablet":
+                return "max-w-[768px]"
+            default:
+                return "w-full"
+        }
+    }
 
     // Convert artifacts to file tree structure
     useEffect(() => {
@@ -100,14 +114,24 @@ export function CodeViewer({ artifacts = [] }: CodeViewerProps) {
                 </div>
 
                 <TabsContent value="preview" className="flex-1 m-0">
-                    <div className="h-full flex items-center justify-center bg-muted/20">
-                        <div className="text-center text-muted-foreground">
-                            <Monitor className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                            <p className="text-sm">Live preview will appear here</p>
-                            <Button variant="outline" size="sm" className="mt-4">
-                                <Play className="w-3 h-3 mr-2" />
-                                Start Preview
-                            </Button>
+                    <div className="h-full flex items-center justify-center bg-muted/20 p-4">
+                        <div className={cn(
+                            "bg-white dark:bg-slate-900 border rounded-lg shadow-lg transition-all duration-300 h-[600px]",
+                            getPreviewSize()
+                        )}>
+                            <div className="h-full flex items-center justify-center text-muted-foreground">
+                                <div className="text-center">
+                                    <Monitor className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                    <p className="text-sm">Live preview will appear here</p>
+                                    <p className="text-xs text-muted-foreground/60 mt-2">
+                                        Mode: {previewMode}
+                                    </p>
+                                    <Button variant="outline" size="sm" className="mt-4">
+                                        <Play className="w-3 h-3 mr-2" />
+                                        Start Preview Server
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </TabsContent>
