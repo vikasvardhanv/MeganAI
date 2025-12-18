@@ -236,6 +236,94 @@ export const TASK_MODEL_MAP: Record<string, {
         fallbacks: ["gpt-4o-mini"],
         reason: "Mechanical task, use cheapest option"
     },
+
+    // ============ CONTENT LIFECYCLE ============
+    "content-writing": {
+        primary: "claude-sonnet-4",
+        fallbacks: ["gpt-4o", "gemini-1.5-pro"],
+        reason: "Best for structured, coherent long-form writing"
+    },
+    "content-rewriting": {
+        primary: "gpt-4o",
+        fallbacks: ["claude-sonnet-4", "gemini-1.5-pro"],
+        reason: "Creative rephrasing and style adaptation"
+    },
+    "content-summarization": {
+        primary: "gemini-2.0-flash",
+        fallbacks: ["claude-sonnet-4", "gpt-4o-mini"],
+        reason: "Fast summarization at scale"
+    },
+    "content-expansion": {
+        primary: "claude-sonnet-4",
+        fallbacks: ["gpt-4o", "gemini-1.5-pro"],
+        reason: "Detailed content expansion with context awareness"
+    },
+
+    // ============ NLP & TAGGING ============
+    "auto-tagging": {
+        primary: "gemini-2.0-flash",
+        fallbacks: ["gpt-4o-mini", "claude-sonnet-4"],
+        reason: "Fast classification and tagging"
+    },
+    "entity-extraction": {
+        primary: "claude-sonnet-4",
+        fallbacks: ["gpt-4o", "gemini-1.5-pro"],
+        reason: "Precise entity recognition"
+    },
+    "sentiment-analysis": {
+        primary: "gemini-2.0-flash",
+        fallbacks: ["gpt-4o-mini", "claude-sonnet-4"],
+        reason: "Fast sentiment classification"
+    },
+    "keyword-extraction": {
+        primary: "gemini-2.0-flash",
+        fallbacks: ["gpt-4o-mini", "claude-sonnet-4"],
+        reason: "Quick keyword identification"
+    },
+    "text-classification": {
+        primary: "gemini-2.0-flash",
+        fallbacks: ["gpt-4o-mini", "claude-sonnet-4"],
+        reason: "Fast text categorization"
+    },
+
+    // ============ SEO ============
+    "seo-optimization": {
+        primary: "claude-sonnet-4",
+        fallbacks: ["gpt-4o", "gemini-1.5-pro"],
+        reason: "Understanding of SEO best practices"
+    },
+    "meta-generation": {
+        primary: "gemini-2.0-flash",
+        fallbacks: ["gpt-4o-mini", "claude-sonnet-4"],
+        reason: "Fast title/description generation"
+    },
+    "schema-markup": {
+        primary: "claude-sonnet-4",
+        fallbacks: ["gpt-4-turbo", "gpt-4o"],
+        reason: "Structured data expertise"
+    },
+
+    // ============ WORKFLOW AUTOMATION ============
+    "task-decomposition": {
+        primary: "claude-opus-4",
+        fallbacks: ["gpt-4-turbo", "claude-sonnet-4"],
+        reason: "Breaking complex tasks into subtasks"
+    },
+    "decision-making": {
+        primary: "claude-opus-4",
+        fallbacks: ["gpt-4-turbo", "claude-sonnet-4"],
+        reason: "Complex conditional logic"
+    },
+    "quality-review": {
+        primary: "claude-opus-4",
+        fallbacks: ["gpt-4-turbo", "claude-sonnet-4"],
+        reason: "Thorough quality analysis"
+    },
+    "workflow-planning": {
+        primary: "claude-opus-4",
+        fallbacks: ["gpt-4-turbo", "gemini-1.5-pro"],
+        reason: "Complex workflow orchestration"
+    },
 }
 
 export function getModelsForTask(task: string): { primary: string; fallbacks: string[] } {
