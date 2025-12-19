@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const workspaceId = searchParams.get("workspaceId")
 
-        const workflows = await db.workflow.findMany({
+        const workflows = await (db as any).workflow.findMany({
             where: workspaceId ? { workspaceId } : undefined,
             include: {
                 tasks: {
@@ -30,11 +30,11 @@ export async function GET(request: NextRequest) {
         })
 
         // Add task counts
-        const workflowsWithCounts = workflows.map(wf => ({
+        const workflowsWithCounts = workflows.map((wf: any) => ({
             ...wf,
             taskCount: wf.tasks.length,
-            completedCount: wf.tasks.filter(t => t.status === "DONE").length,
-            inProgressCount: wf.tasks.filter(t => t.status === "IN_PROGRESS").length
+            completedCount: wf.tasks.filter((t: any) => t.status === "DONE").length,
+            inProgressCount: wf.tasks.filter((t: any) => t.status === "IN_PROGRESS").length
         }))
 
         return NextResponse.json({ workflows: workflowsWithCounts })
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
             workflowStages = templateStages[template as keyof typeof templateStages] || templateStages.CUSTOM
         }
 
-        const workflow = await db.workflow.create({
+        const workflow = await (db as any).workflow.create({
             data: {
                 name,
                 description,

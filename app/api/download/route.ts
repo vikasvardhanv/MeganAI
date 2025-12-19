@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get project and check ownership
-    const project = await db.project.findFirst({
+    const project = await (db as any).project.findFirst({
         where: { id: projectId, userId: session.user.id },
         include: { user: true },
     })

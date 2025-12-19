@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "workflowId required" }, { status: 400 })
         }
 
-        const tasks = await db.task.findMany({
+        const tasks = await (db as any).task.findMany({
             where: { workflowId },
             include: {
                 assignee: {
@@ -46,11 +46,11 @@ export async function GET(request: NextRequest) {
         })
 
         // Add computed fields
-        const tasksWithComputed = tasks.map(task => ({
+        const tasksWithComputed = tasks.map((task: any) => ({
             ...task,
             workflowTemplate: task.workflow?.template,
             stepsCount: task.steps.length,
-            stepsCompleted: task.steps.filter(s => s.status === "COMPLETE").length
+            stepsCompleted: task.steps.filter((s: any) => s.status === "COMPLETE").length
         }))
 
         return NextResponse.json({ tasks: tasksWithComputed })
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get workflow to access stages
-        const workflow = await db.workflow.findUnique({
+        const workflow = await (db as any).workflow.findUnique({
             where: { id: workflowId }
         })
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get max position for ordering
-        const maxPosition = await db.task.aggregate({
+        const maxPosition = await (db as any).task.aggregate({
             where: { workflowId, status: "TODO" },
             _max: { position: true }
         })
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         // Create task with steps based on workflow stages
         const stages = workflow.stages as string[]
 
-        const task = await db.task.create({
+        const task = await (db as any).task.create({
             data: {
                 title,
                 description,

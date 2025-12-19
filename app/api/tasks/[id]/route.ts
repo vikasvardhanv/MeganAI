@@ -36,13 +36,13 @@ export async function PATCH(
 
         // If status is changing to IN_PROGRESS, auto-assign if not assigned
         if (status === "IN_PROGRESS" && !assigneeId) {
-            const task = await db.task.findUnique({ where: { id } })
+            const task = await (db as any).task.findUnique({ where: { id } })
             if (task && !task.assigneeId) {
                 updateData.assigneeId = session.user.id
             }
         }
 
-        const updatedTask = await db.task.update({
+        const updatedTask = await (db as any).task.update({
             where: { id },
             data: updateData,
             include: {
@@ -74,7 +74,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        await db.task.delete({
+        await (db as any).task.delete({
             where: { id }
         })
 

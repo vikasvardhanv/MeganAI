@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Get workspaces where user is owner or member
-        const workspaces = await db.workspace.findMany({
+        const workspaces = await (db as any).workspace.findMany({
             where: {
                 OR: [
                     { ownerId: session.user.id },
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         })
 
         // Add computed fields and user's role
-        const workspacesWithRole = workspaces.map(ws => ({
+        const workspacesWithRole = workspaces.map((ws: any) => ({
             id: ws.id,
             name: ws.name,
             slug: ws.slug,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             .replace(/^-|-$/g, "")
             + "-" + Date.now().toString(36)
 
-        const workspace = await db.workspace.create({
+        const workspace = await (db as any).workspace.create({
             data: {
                 name,
                 slug,

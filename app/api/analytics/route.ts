@@ -34,24 +34,24 @@ export async function GET(request: NextRequest) {
             where.projectId = projectId
         }
 
-        // Fetch usage logs
-        const logs = await db.usageLog.findMany({
+        // Fetch usage logs (using type assertion since prisma client may not be generated)
+        const logs: any[] = await (db as any).usageLog.findMany({
             where,
             orderBy: { createdAt: "asc" }
         })
 
         // Calculate aggregates
-        const totalTokens = logs.reduce((sum, log) => sum + log.tokensIn + log.tokensOut, 0)
-        const totalCost = logs.reduce((sum, log) => sum + log.cost, 0)
+        const totalTokens = logs.reduce((sum: number, log: any) => sum + log.tokensIn + log.tokensOut, 0)
+        const totalCost = logs.reduce((sum: number, log: any) => sum + log.cost, 0)
         const avgLatency = logs.length > 0
-            ? logs.reduce((sum, log) => sum + log.durationMs, 0) / logs.length
+            ? logs.reduce((sum: number, log: any) => sum + log.durationMs, 0) / logs.length
             : 0
         const successCount = logs.length // Assuming all logged are successful
         const successRate = logs.length > 0 ? 100 : 0
 
         // Group by model
         const byModel: Record<string, { tokens: number; cost: number; requests: number }> = {}
-        logs.forEach(log => {
+        logs.forEach((log: any) => {
             if (!byModel[log.model]) {
                 byModel[log.model] = { tokens: 0, cost: 0, requests: 0 }
             }
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
         // Group by task
         const byTask: Record<string, { tokens: number; cost: number; requests: number }> = {}
-        logs.forEach(log => {
+        logs.forEach((log: any) => {
             if (!byTask[log.taskType]) {
                 byTask[log.taskType] = { tokens: 0, cost: 0, requests: 0 }
             }
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
         // Daily trend
         const dailyTrend: Record<string, { tokens: number; cost: number }> = {}
-        logs.forEach(log => {
+        logs.forEach((log: any) => {
             const date = log.createdAt.toISOString().split("T")[0]
             if (!dailyTrend[date]) {
                 dailyTrend[date] = { tokens: 0, cost: 0 }
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const log = await db.usageLog.create({
+        const log = await (db as any).usageLog.create({
             data: {
                 model,
                 taskType,

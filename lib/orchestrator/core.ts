@@ -33,12 +33,14 @@ export interface Artifact {
 }
 
 export interface ProgressEvent {
-    type: "thinking" | "generating" | "complete" | "error"
+    type: "thinking" | "generating" | "complete" | "error" | "task_created" | "task_started" | "task_completed"
     agent?: string
     message: string
     file?: string
     progress?: number
     artifact?: Artifact
+    taskId?: string
+    taskTitle?: string
 }
 
 export class AppOrchestrator {
@@ -230,12 +232,23 @@ IMPORTANT: Make the task descriptions specific to what the user asked for, not g
             message: analysisMessage
         }
 
-        // Show the plan
+        // Show the plan and emit task_created events
         if (this.tasks.length > 0) {
             yield {
                 type: "thinking",
                 agent: "Architect",
                 message: `📝 **Execution Plan:**\n${this.tasks.map((t, i) => `${i + 1}. ${t.description}`).join("\n")}`
+            }
+
+            // Emit task_created for each task (for Kanban board)
+            for (const task of this.tasks) {
+                yield {
+                    type: "task_created",
+                    agent: this.getAgentForTask(task.type),
+                    message: task.description,
+                    taskId: task.id,
+                    taskTitle: task.description.slice(0, 50)
+                }
             }
         }
 
@@ -263,6 +276,15 @@ IMPORTANT: Make the task descriptions specific to what the user asked for, not g
                 continue
             }
 
+            // Emit task_started event
+            yield {
+                type: "task_started",
+                agent: this.getAgentForTask(runnableTask.type),
+                message: `Starting: ${runnableTask.description}`,
+                taskId: runnableTask.id,
+                taskTitle: runnableTask.description.slice(0, 50)
+            }
+
             // Execute the task
             runnableTask.status = "running"
 
@@ -270,6 +292,15 @@ IMPORTANT: Make the task descriptions specific to what the user asked for, not g
 
             completedTasks.add(runnableTask.id)
             runnableTask.status = "complete"
+
+            // Emit task_completed event
+            yield {
+                type: "task_completed",
+                agent: this.getAgentForTask(runnableTask.type),
+                message: `Completed: ${runnableTask.description}`,
+                taskId: runnableTask.id,
+                taskTitle: runnableTask.description.slice(0, 50)
+            }
         }
 
         yield {

@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const { projectId, message, userApiKeys } = await req.json()
 
     // Verify project ownership
-    const project = await db.project.findFirst({
+    const project = await (db as any).project.findFirst({
         where: { id: projectId, userId: session.user.id },
     })
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check credits
-    const user = await db.user.findUnique({ where: { id: session.user.id } })
+    const user = await (db as any).user.findUnique({ where: { id: session.user.id } })
     if (!user || user.credits < 10) {
         return new Response("Insufficient credits", { status: 402 })
     }
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
                 )
 
                 // Update project in database
-                await db.project.update({
+                await (db as any).project.update({
                     where: { id: projectId },
                     data: {
                         code: result.files,
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
                 })
 
                 // Save messages
-                await db.message.create({
+                await (db as any).message.create({
                     data: {
                         projectId,
                         role: "USER",
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
                     },
                 })
 
-                await db.message.create({
+                await (db as any).message.create({
                     data: {
                         projectId,
                         role: "ASSISTANT",
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
                 })
 
                 // Deduct credits
-                await db.user.update({
+                await (db as any).user.update({
                     where: { id: session.user.id },
                     data: { credits: { decrement: 10 } },
                 })

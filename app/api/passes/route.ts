@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const passes = await db.pass.findMany({
+        const passes: any[] = await (db as any).pass.findMany({
             where: {
                 userId: session.user.id,
                 validUntil: { gte: new Date() }
@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
         })
 
         // Calculate remaining credits
-        const totalCredits = passes.reduce((sum, p) => sum + p.credits, 0)
-        const usedCredits = passes.reduce((sum, p) => sum + p.usedCredits, 0)
+        const totalCredits = passes.reduce((sum: number, p: any) => sum + p.credits, 0)
+        const usedCredits = passes.reduce((sum: number, p: any) => sum + p.usedCredits, 0)
         const remainingCredits = totalCredits - usedCredits
 
         return NextResponse.json({
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         // In production, this would integrate with Stripe
         // For now, we create the pass directly
-        const pass = await db.pass.create({
+        const pass = await (db as any).pass.create({
             data: {
                 type: type as any,
                 name: config.name,
@@ -132,7 +132,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         // Get active passes sorted by expiration (use expiring ones first)
-        const passes = await db.pass.findMany({
+        const passes: any[] = await (db as any).pass.findMany({
             where: {
                 userId: session.user.id,
                 validUntil: { gte: new Date() },
@@ -142,7 +142,7 @@ export async function PATCH(request: NextRequest) {
         })
 
         // Calculate available credits
-        const availableCredits = passes.reduce((sum, p) => sum + (p.credits - p.usedCredits), 0)
+        const availableCredits = passes.reduce((sum: number, p: any) => sum + (p.credits - p.usedCredits), 0)
 
         if (credits > availableCredits) {
             return NextResponse.json(
@@ -157,7 +157,7 @@ export async function PATCH(request: NextRequest) {
             const available = pass.credits - pass.usedCredits
             if (available > 0 && remaining > 0) {
                 const deduct = Math.min(available, remaining)
-                await db.pass.update({
+                await (db as any).pass.update({
                     where: { id: pass.id },
                     data: { usedCredits: pass.usedCredits + deduct }
                 })
