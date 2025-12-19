@@ -166,6 +166,11 @@ export function OrchestratorPanel() {
 
         setState(prev => ({ ...prev, phase: "building" }))
 
+        // Emit build start event
+        window.dispatchEvent(new CustomEvent("megan-build", {
+            detail: { type: "build_start" }
+        }))
+
         // Trigger the full orchestration
         try {
             const buildPrompt = state.projectSpec
@@ -195,6 +200,14 @@ export function OrchestratorPanel() {
                         if (line.startsWith("data: ")) {
                             try {
                                 const event = JSON.parse(line.slice(6))
+
+                                // Emit event to page for CodeViewer
+                                if (event.type) {
+                                    window.dispatchEvent(new CustomEvent("megan-build", {
+                                        detail: event
+                                    }))
+                                }
+
                                 if (event.message) {
                                     setMessages(prev => [...prev, {
                                         role: "assistant",
@@ -207,6 +220,11 @@ export function OrchestratorPanel() {
                 }
             }
 
+            // Emit build complete event
+            window.dispatchEvent(new CustomEvent("megan-build", {
+                detail: { type: "build_complete" }
+            }))
+
             setState(prev => ({ ...prev, phase: "complete" }))
             setMessages(prev => [...prev, {
                 role: "assistant",
@@ -214,6 +232,11 @@ export function OrchestratorPanel() {
             }])
 
         } catch (error) {
+            // Emit build error event
+            window.dispatchEvent(new CustomEvent("megan-build", {
+                detail: { type: "build_error", error: String(error) }
+            }))
+
             setMessages(prev => [...prev, {
                 role: "system",
                 content: "Build failed. Please try again."

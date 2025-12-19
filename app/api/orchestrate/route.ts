@@ -52,18 +52,55 @@ export async function POST(req: Request) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
+                    // Emit build start
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                        type: "build_start"
+                    })}\n\n`))
+
                     for await (const event of orchestrator.execute()) {
-                        const data = `data: ${JSON.stringify(event)}\n\n`
-                        controller.enqueue(encoder.encode(data))
+                        // Map orchestrator events to CodeViewer events
+                        const mappedEvent = {
+                            type: event.type === "generating" ? "agent_start" : event.type,
+                            agent: event.agent,
+                            task: event.message,
+                            message: event.message,
+                            progress: event.progress
+                        }
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(mappedEvent)}\n\n`))
+
+                        // If event includes artifact, emit file_generated
+                        if (event.artifact) {
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                                type: "file_generated",
+                                path: event.artifact.path,
+                                content: event.artifact.content
+                            })}\n\n`))
+                        }
                     }
+
+                    // Emit any generated artifacts
+                    const artifacts = orchestrator.getArtifacts()
+                    for (const artifact of artifacts) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                            type: "file_generated",
+                            path: artifact.path,
+                            content: artifact.content
+                        })}\n\n`))
+                    }
+
+                    // Emit build complete
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                        type: "build_complete",
+                        artifactCount: artifacts.length
+                    })}\n\n`))
+
                     controller.close()
                 } catch (error) {
                     console.error("[Orchestrate] Execution error:", error)
-                    const errorEvent = `data: ${JSON.stringify({
-                        type: "error",
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                        type: "build_error",
                         message: error instanceof Error ? error.message : "Unknown execution error"
-                    })}\n\n`
-                    controller.enqueue(encoder.encode(errorEvent))
+                    })}\n\n`))
                     controller.close()
                 }
             },
