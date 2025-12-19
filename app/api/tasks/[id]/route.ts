@@ -12,9 +12,10 @@ import { authOptions } from "@/lib/auth"
 // PATCH /api/tasks/[id] - Update task
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -24,7 +25,7 @@ export async function PATCH(
         const { status, priority, title, description, assigneeId, currentStage, branchName } = body
 
         // Build update data
-        const updateData: any = {}
+        const updateData: Record<string, unknown> = {}
         if (status !== undefined) updateData.status = status
         if (priority !== undefined) updateData.priority = priority
         if (title !== undefined) updateData.title = title
@@ -35,14 +36,14 @@ export async function PATCH(
 
         // If status is changing to IN_PROGRESS, auto-assign if not assigned
         if (status === "IN_PROGRESS" && !assigneeId) {
-            const task = await db.task.findUnique({ where: { id: params.id } })
+            const task = await db.task.findUnique({ where: { id } })
             if (task && !task.assigneeId) {
                 updateData.assigneeId = session.user.id
             }
         }
 
         const updatedTask = await db.task.update({
-            where: { id: params.id },
+            where: { id },
             data: updateData,
             include: {
                 assignee: { select: { id: true, name: true, image: true } },
@@ -64,16 +65,17 @@ export async function PATCH(
 // DELETE /api/tasks/[id] - Delete task
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
         await db.task.delete({
-            where: { id: params.id }
+            where: { id }
         })
 
         return NextResponse.json({ success: true })
