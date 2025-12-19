@@ -300,7 +300,7 @@ IMPORTANT: Make the task descriptions specific to what the user asked for, not g
                 case "architecture":
                     const architectAgent = new ArchitectAgent(this.router.apiKeys);
                     const architectResult = await architectAgent.analyze(
-                        task.description
+                        this.userPrompt || task.description
                     );
                     // Type cast workaround for TS inference issue
                     generatedArtifacts = (architectResult as any).artifacts as Artifact[]
@@ -312,6 +312,14 @@ IMPORTANT: Make the task descriptions specific to what the user asked for, not g
                     const uiPlan = (this.tasks.find(t => t.type === "architecture") as any)?.plan
                     if (uiPlan) {
                         generatedArtifacts = await uiAgent.generateComponents(uiPlan)
+                    } else {
+                        // Fallback: Generate basic components from context
+                        yield {
+                            type: "generating",
+                            agent: agentName,
+                            message: "No architecture plan found, using default components...",
+                            progress: 10
+                        }
                     }
                     break
 
@@ -322,6 +330,13 @@ IMPORTANT: Make the task descriptions specific to what the user asked for, not g
                         const schema = await backendAgent.generateSchema(backendPlan)
                         const apis = await backendAgent.generateAPIs(backendPlan)
                         generatedArtifacts = [schema, ...apis]
+                    } else {
+                        yield {
+                            type: "generating",
+                            agent: agentName,
+                            message: "No architecture plan found, using default API structure...",
+                            progress: 10
+                        }
                     }
                     break
 
@@ -344,10 +359,22 @@ IMPORTANT: Make the task descriptions specific to what the user asked for, not g
             this.artifacts.push(...generatedArtifacts)
             task.output = generatedArtifacts[0] // Store first artifact in task
 
+            // *** KEY FIX: Yield each artifact as a separate event with full content ***
+            for (const artifact of generatedArtifacts) {
+                yield {
+                    type: "generating",
+                    agent: agentName,
+                    message: `📄 Generated: ${artifact.path}`,
+                    file: artifact.path,
+                    artifact: artifact,
+                    progress: 80
+                }
+            }
+
             yield {
                 type: "generating",
                 agent: agentName,
-                message: `✓ Generated ${generatedArtifacts.length} file(s)`,
+                message: `✓ ${agentName} completed - ${generatedArtifacts.length} file(s)`,
                 progress: 100
             }
         } catch (error) {

@@ -33,7 +33,11 @@ export default function NewProjectPage() {
     // Listen for build events from the orchestrator
     useEffect(() => {
         const handleBuildEvent = (event: CustomEvent) => {
-            const { type, data } = event.detail
+            // Event structure from orchestrator: { type, agent, task, message, progress, path, content }
+            const eventData = event.detail
+            const type = eventData.type
+
+            console.log("[NewProjectPage] Received event:", type, eventData)
 
             switch (type) {
                 case "build_start":
@@ -44,33 +48,31 @@ export default function NewProjectPage() {
                     break
 
                 case "agent_start":
-                    setCurrentAgent(data.agent)
-                    setBuildPhase(`${data.agent} is ${data.task}`)
-                    // Find matching phase for progress
-                    const phase = BUILD_PHASES.find(p =>
-                        p.name.toLowerCase().includes(data.task?.toLowerCase() || "")
-                    )
-                    if (phase) {
-                        setBuildProgress(phase.progress)
+                case "thinking":
+                case "generating":
+                    if (eventData.agent) {
+                        setCurrentAgent(eventData.agent)
                     }
-                    break
-
-                case "agent_progress":
-                    if (data.progress) {
-                        setBuildProgress(data.progress)
+                    if (eventData.message) {
+                        setBuildPhase(eventData.message.slice(0, 80))
+                    }
+                    if (eventData.progress) {
+                        setBuildProgress(eventData.progress)
                     }
                     break
 
                 case "file_generated":
-                    if (data.path && data.content) {
+                    if (eventData.path && eventData.content) {
+                        console.log("[NewProjectPage] Adding file:", eventData.path)
                         setArtifacts(prev => [
                             ...prev,
-                            { path: data.path, content: data.content, type: "code" }
+                            { path: eventData.path, content: eventData.content, type: "code" }
                         ])
                     }
                     break
 
                 case "build_complete":
+                case "complete":
                     setIsBuilding(false)
                     setBuildProgress(100)
                     setBuildPhase("Complete!")
@@ -78,6 +80,7 @@ export default function NewProjectPage() {
                     break
 
                 case "build_error":
+                case "error":
                     setIsBuilding(false)
                     setBuildPhase("Error occurred")
                     setCurrentAgent(null)
