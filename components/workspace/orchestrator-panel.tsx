@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Send, Bot, User, Loader2, CheckCircle2, XCircle, Activity, Sparkles, Hammer } from "lucide-react"
+import { Send, Bot, User, Loader2, CheckCircle2, XCircle, Activity, Sparkles, Hammer, Mic, MicOff, Volume2, VolumeX } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useVoiceInput } from "@/hooks/use-voice-input"
+import { useVoiceOutput } from "@/hooks/use-voice-output"
 
 interface Message {
     role: "user" | "assistant" | "system"
@@ -34,7 +36,33 @@ export function OrchestratorPanel() {
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [state, setState] = useState<ConversationState>({ phase: "gathering" })
+    const [voiceModeEnabled, setVoiceModeEnabled] = useState(false)
+    const [speakingMessageIndex, setSpeakingMessageIndex] = useState<number | null>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
+
+    // Voice hooks
+    const {
+        transcript,
+        interimTranscript,
+        isListening,
+        isSupported: voiceInputSupported,
+        startListening,
+        stopListening,
+        resetTranscript
+    } = useVoiceInput({
+        onResult: (text, isFinal) => {
+            if (isFinal) {
+                setInput(prev => prev + text)
+            }
+        }
+    })
+
+    const {
+        isSpeaking,
+        isLoading: ttsLoading,
+        speak,
+        stop: stopSpeaking
+    } = useVoiceOutput({ voice: "nova" })
 
     // Auto-scroll to bottom on new messages
     useEffect(() => {
@@ -43,9 +71,39 @@ export function OrchestratorPanel() {
         }
     }, [messages])
 
+    // Auto-speak new assistant messages when voice mode is enabled
+    useEffect(() => {
+        if (voiceModeEnabled && messages.length > 0) {
+            const lastMessage = messages[messages.length - 1]
+            if (lastMessage.role === "assistant" && !isLoading) {
+                // Clean markdown for better TTS
+                const cleanText = lastMessage.content
+                    .replace(/\*\*/g, "")
+                    .replace(/\*/g, "")
+                    .replace(/`/g, "")
+                    .replace(/#+\s/g, "")
+                speak(cleanText)
+                setSpeakingMessageIndex(messages.length - 1)
+            }
+        }
+    }, [messages, voiceModeEnabled, isLoading])
+
+    // Update speaking index when TTS stops
+    useEffect(() => {
+        if (!isSpeaking) {
+            setSpeakingMessageIndex(null)
+        }
+    }, [isSpeaking])
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!input.trim() || isLoading) return
+
+        // Stop listening if was recording
+        if (isListening) {
+            stopListening()
+        }
+        resetTranscript()
 
         const userMessage: Message = { role: "user", content: input }
         const allMessages = [...messages, userMessage]
@@ -163,6 +221,32 @@ export function OrchestratorPanel() {
         }
     }
 
+    const handleMicClick = () => {
+        if (isListening) {
+            stopListening()
+        } else {
+            setInput("") // Clear to start fresh
+            resetTranscript()
+            startListening()
+        }
+    }
+
+    const handleSpeakMessage = (content: string, index: number) => {
+        if (speakingMessageIndex === index) {
+            stopSpeaking()
+            setSpeakingMessageIndex(null)
+        } else {
+            // Clean markdown
+            const cleanText = content
+                .replace(/\*\*/g, "")
+                .replace(/\*/g, "")
+                .replace(/`/g, "")
+                .replace(/#+\s/g, "")
+            speak(cleanText)
+            setSpeakingMessageIndex(index)
+        }
+    }
+
     const getPhaseDisplay = () => {
         switch (state.phase) {
             case "gathering": return { icon: Sparkles, text: "Understanding", color: "text-blue-500" }
@@ -183,10 +267,29 @@ export function OrchestratorPanel() {
                     <Bot className="w-5 h-5 text-primary" />
                     <span className="font-semibold">Megan</span>
                 </div>
-                <Badge variant="secondary" className={cn("gap-1", phase.color)}>
-                    <PhaseIcon className="w-3 h-3" />
-                    {phase.text}
-                </Badge>
+                <div className="flex items-center gap-2">
+                    {/* Voice Mode Toggle */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            "h-8 w-8",
+                            voiceModeEnabled && "bg-primary/10 text-primary"
+                        )}
+                        onClick={() => setVoiceModeEnabled(!voiceModeEnabled)}
+                        title={voiceModeEnabled ? "Disable voice responses" : "Enable voice responses"}
+                    >
+                        {voiceModeEnabled ? (
+                            <Volume2 className="h-4 w-4" />
+                        ) : (
+                            <VolumeX className="h-4 w-4" />
+                        )}
+                    </Button>
+                    <Badge variant="secondary" className={cn("gap-1", phase.color)}>
+                        <PhaseIcon className="w-3 h-3" />
+                        {phase.text}
+                    </Badge>
+                </div>
             </div>
 
             {/* Messages */}
@@ -217,13 +320,34 @@ export function OrchestratorPanel() {
                                 )}
                             </div>
 
-                            <div className={cn(
-                                "relative px-4 py-3 text-sm shadow-sm max-w-[85%]",
-                                m.role === "user"
-                                    ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
-                                    : "bg-white dark:bg-slate-800 border rounded-2xl rounded-tl-sm"
-                            )}>
-                                <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                            <div className="relative group">
+                                <div className={cn(
+                                    "relative px-4 py-3 text-sm shadow-sm max-w-[85%]",
+                                    m.role === "user"
+                                        ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
+                                        : "bg-white dark:bg-slate-800 border rounded-2xl rounded-tl-sm"
+                                )}>
+                                    <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                                </div>
+
+                                {/* Speaker button for assistant messages */}
+                                {m.role === "assistant" && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={cn(
+                                            "absolute -right-8 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity",
+                                            speakingMessageIndex === i && "opacity-100 text-primary"
+                                        )}
+                                        onClick={() => handleSpeakMessage(m.content, i)}
+                                    >
+                                        {speakingMessageIndex === i ? (
+                                            <VolumeX className="h-3 w-3" />
+                                        ) : (
+                                            <Volume2 className="h-3 w-3" />
+                                        )}
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -252,14 +376,46 @@ export function OrchestratorPanel() {
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="flex gap-2">
-                        <Input
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder="Tell me about your app..."
-                            className="flex-1"
-                            disabled={isLoading}
-                        />
-                        <Button type="submit" size="icon" disabled={isLoading}>
+                        <div className="flex-1 relative">
+                            <Input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder={isListening ? "Listening..." : "Tell me about your app..."}
+                                className={cn(
+                                    "flex-1 pr-10",
+                                    isListening && "border-primary bg-primary/5"
+                                )}
+                                disabled={isLoading}
+                            />
+                            {/* Interim transcript display */}
+                            {isListening && interimTranscript && (
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground animate-pulse">
+                                    {interimTranscript}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Microphone button */}
+                        {voiceInputSupported && (
+                            <Button
+                                type="button"
+                                size="icon"
+                                variant={isListening ? "default" : "outline"}
+                                onClick={handleMicClick}
+                                disabled={isLoading}
+                                className={cn(
+                                    isListening && "animate-pulse bg-red-500 hover:bg-red-600"
+                                )}
+                            >
+                                {isListening ? (
+                                    <MicOff className="h-4 w-4" />
+                                ) : (
+                                    <Mic className="h-4 w-4" />
+                                )}
+                            </Button>
+                        )}
+
+                        <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
                             {isLoading ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
@@ -272,4 +428,3 @@ export function OrchestratorPanel() {
         </div>
     )
 }
-

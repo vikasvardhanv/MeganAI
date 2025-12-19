@@ -24,6 +24,14 @@ model User {
   sessions      Session[]
   projects      Project[]
   
+  // New relations for ZenForge
+  ownedWorkspaces    Workspace[]       @relation("WorkspaceOwner")
+  workspaceMemberships WorkspaceMember[]
+  createdTasks       Task[]            @relation("TaskCreator")
+  assignedTasks      Task[]            @relation("TaskAssignee")
+  passes             Pass[]
+  usageLogs          UsageLog[]
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -86,8 +94,11 @@ model Project {
   // Relations
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String?
+  workspace   Workspace?    @relation(fields: [workspaceId], references: [id])
   messages    Message[]
   versions    Version[]
+  tasks       Task[]
   
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -119,6 +130,168 @@ model Version {
   
   createdAt DateTime @default(now())
 }
+
+// ============ WORKSPACE & TEAMS ============
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  
+  ownerId     String
+  owner       User     @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  
+  members     WorkspaceMember[]
+  workflows   Workflow[]
+  projects    Project[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkspaceMember {
+  id          String     @id @default(cuid())
+  role        MemberRole @default(MEMBER)
+  
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime   @default(now())
+  
+  @@unique([workspaceId, userId])
+}
+
+// ============ WORKFLOWS & TASKS (KANBAN) ============
+
+model Workflow {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  icon        String?          // Emoji or icon name
+  color       String?          // Hex color
+  template    WorkflowTemplate @default(CUSTOM)
+  stages      Json             // ["Requirements", "Tech Spec", "Planning", "Implementation"]
+  autoStart   Boolean          @default(false)
+  
+  workspaceId String
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Task {
+  id            String       @id @default(cuid())
+  title         String
+  description   String?      @db.Text
+  
+  // Status & Priority
+  status        TaskStatus   @default(TODO)
+  priority      TaskPriority @default(MEDIUM)
+  position      Int          @default(0)  // For ordering in Kanban
+  
+  // Pipeline tracking
+  currentStage  String?
+  progress      Int          @default(0)  // 0-100
+  
+  // Git integration
+  branchName    String?
+  commits       Json[]       // Array of commit info
+  
+  // Planning
+  planMd        String?      @db.Text
+  
+  // Relations
+  workflowId    String
+  workflow      Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  projectId     String?
+  project       Project?     @relation(fields: [projectId], references: [id])
+  assigneeId    String?
+  assignee      User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdById   String
+  createdBy     User         @relation("TaskCreator", fields: [createdById], references: [id])
+  
+  steps         TaskStep[]
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model TaskStep {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  order       Int        @default(0)
+  status      StepStatus @default(PENDING)
+  
+  // AI execution details
+  agentUsed   String?
+  modelUsed   String?
+  tokensUsed  Int?
+  durationMs  Int?
+  
+  // Output
+  output      String?    @db.Text
+  artifacts   Json[]     // Generated files
+  error       String?
+  
+  taskId      String
+  task        Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime   @default(now())
+  completedAt DateTime?
+}
+
+// ============ PASSES & USAGE ============
+
+model Pass {
+  id          String   @id @default(cuid())
+  type        PassType
+  name        String
+  credits     Int
+  usedCredits Int      @default(0)
+  price       Float    // In dollars
+  
+  validFrom   DateTime @default(now())
+  validUntil  DateTime
+  
+  isActive    Boolean  @default(true)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}
+
+model UsageLog {
+  id          String   @id @default(cuid())
+  
+  // What was used
+  model       String
+  taskType    String
+  tokensIn    Int
+  tokensOut   Int
+  cost        Float    // In cents
+  durationMs  Int
+  
+  // Context
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  projectId   String?
+  taskId      String?
+  stepId      String?
+  
+  // Metadata
+  metadata    Json?
+  
+  createdAt   DateTime @default(now())
+}
+
+// ============ ENUMS ============
 
 enum Plan {
   FREE
@@ -154,4 +327,50 @@ enum MessageRole {
   USER
   ASSISTANT
   SYSTEM
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum WorkflowTemplate {
+  NEW_FEATURE
+  FIX_BUG
+  VIBE_CODE
+  REFACTOR
+  CUSTOM
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETE
+  FAILED
+  SKIPPED
+}
+
+enum PassType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  ANNUAL
+  TEAM
 }
