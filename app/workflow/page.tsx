@@ -3,6 +3,8 @@
  * Voice-controlled marketing workflow builder
  */
 
+"use client"
+
 import { WorkflowCanvas } from "@/components/workflow/workflow-canvas"
 
 export default function WorkflowEditorPage() {
