@@ -1,0 +1,289 @@
+/**
+ * Agent Board Styles
+ * Premium glassmorphism effects for the multi-agent collaboration UI
+ */
+
+/* Agent card with glass effect */
+.agent-card {
+    position: relative;
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.agent-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 
+        0 0 0 1px rgba(139, 92, 246, 0.2),
+        0 8px 32px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.agent-card.active {
+    border-color: rgba(139, 92, 246, 0.6);
+    box-shadow: 
+        0 0 0 2px rgba(139, 92, 246, 0.3),
+        0 8px 40px rgba(139, 92, 246, 0.15);
+}
+
+/* Pulse animation for active agents */
+@keyframes pulse-subtle {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+    }
+}
+
+.animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Agent status indicators */
+.agent-status {
+    position: relative;
+}
+
+.agent-status::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    animation: status-pulse 2s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 currentColor;
+        opacity: 0.4;
+    }
+    50% {
+        box-shadow: 0 0 0 4px currentColor;
+        opacity: 0;
+    }
+}
+
+/* Agent connection lines */
+.agent-connection {
+    stroke-dasharray: 8, 4;
+    animation: dash-flow 1s linear infinite;
+}
+
+@keyframes dash-flow {
+    to {
+        stroke-dashoffset: -12;
+    }
+}
+
+/* Gradient glow effect for active connections */
+.connection-glow {
+    filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.5));
+}
+
+/* Streaming cursor effect */
+.streaming-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 18px;
+    background: linear-gradient(180deg, #8b5cf6, #a855f7);
+    margin-left: 2px;
+    animation: cursor-blink 0.8s ease-in-out infinite;
+}
+
+@keyframes cursor-blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+/* Code preview window */
+.code-preview {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.85));
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+}
+
+.code-preview .line-number {
+    color: rgba(100, 116, 139, 0.5);
+    user-select: none;
+}
+
+/* Activity timeline */
+.timeline-item {
+    position: relative;
+    padding-left: 24px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 24px;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, rgba(139, 92, 246, 0.3), transparent);
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -4px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    background: #0f172a;
+}
+
+/* File tree styling */
+.file-tree-item {
+    transition: background-color 0.15s ease;
+}
+
+.file-tree-item:hover {
+    background-color: rgba(71, 85, 105, 0.3);
+}
+
+.file-tree-item.selected {
+    background-color: rgba(139, 92, 246, 0.2);
+}
+
+/* Progress bar gradient */
+.progress-gradient {
+    background: linear-gradient(
+        90deg,
+        #8b5cf6 0%,
+        #a855f7 50%,
+        #d946ef 100%
+    );
+    background-size: 200% 100%;
+    animation: gradient-shift 2s ease infinite;
+}
+
+@keyframes gradient-shift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Agent emoji icon container */
+.agent-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Board grid layout */
+.agent-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .agent-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Model badge */
+.model-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(71, 85, 105, 0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+/* Split view divider */
+.split-divider {
+    width: 4px;
+    background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.3), rgba(139, 92, 246, 0.1));
+    cursor: col-resize;
+}
+
+.split-divider:hover {
+    background: linear-gradient(180deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.5), rgba(139, 92, 246, 0.2));
+}
+
+/* Frosted glass header */
+.board-header {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+/* Hover effect for buttons */
+.board-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.board-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+}
+
+.board-button:hover::after {
+    transform: translateX(100%);
+}
+
+/* Tab indicator animation */
+.tab-indicator {
+    position: absolute;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #8b5cf6, #a855f7);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.5);
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.7);
+}

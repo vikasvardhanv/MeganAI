@@ -13,6 +13,7 @@ export interface ProjectConfig {
     name: string
     framework: "NEXTJS" | "REACT" | "VUE" | "SVELTE"
     database: "POSTGRESQL" | "MYSQL" | "SQLITE" | "ORACLE" | "NONE"
+    features?: string[]
 }
 
 export interface Architecture {
