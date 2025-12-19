@@ -5,6 +5,7 @@
  */
 
 import { ModelRouter } from "../ai/router"
+import { analyzeIntent, summarizeIntent, type DetectedIntent } from "./analyzers/intent-analyzer"
 
 export type TaskType =
     | "architecture"
@@ -52,6 +53,7 @@ export class AppOrchestrator {
     private appName: string = ""
     private features: string[] = []
     private components: string[] = []
+    private detectedIntent: DetectedIntent | null = null
 
     constructor(apiKeys: Record<string, string>) {
         this.router = new ModelRouter(apiKeys)
